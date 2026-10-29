@@ -1,1 +1,6 @@
 /target
+**/*.rs.bk
+.env
+*.db
+*.sqlite
+*.sqlite-journal
