@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/rustmu-server", "crates/rustmu-sdk", "crates/rustmu-cli"]
+members = ["crates/rustmu-server", "crates/rustmu-sdk", "crates/rustmu-cli", "crates/rustmu-portal"]
 
 [workspace.package]
 edition = "2021"
