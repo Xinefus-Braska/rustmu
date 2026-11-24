@@ -5,9 +5,10 @@
 //! describes intent, while the server owns destination validation, world
 //! mutation, persistence, concurrency, and event delivery.
 
-use crate::command::{Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput};
+use crate::command::{
+    Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
+};
 use crate::world::World;
-use crate::CharacterId;
 
 /// A direction in which a character may request movement.
 ///
@@ -117,21 +118,15 @@ impl CommandHandler for MoveCommand {
         // as "go north" or "move north quickly", requires a separate
         // contract and should not be silently interpreted.
         let [argument] = command.arguments.as_slice() else {
-            return CommandHandlerResult::Error(String::from(
-                "Usage: <direction>",
-            ));
+            return CommandHandlerResult::Error(String::from("Usage: <direction>"));
         };
 
         let Some(direction) = Direction::from_str(argument) else {
-            return CommandHandlerResult::Error(String::from(
-                "You cannot move in that direction.",
-            ));
+            return CommandHandlerResult::Error(String::from("You cannot move in that direction."));
         };
 
         match world.move_character(context.character_id, direction) {
-            MovementResult::Moved(text) => {
-                CommandHandlerResult::Ok(CommandOutput::new(text))
-            }
+            MovementResult::Moved(text) => CommandHandlerResult::Ok(CommandOutput::new(text)),
             MovementResult::Blocked(text) => CommandHandlerResult::Error(text),
         }
     }
