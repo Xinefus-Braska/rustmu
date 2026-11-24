@@ -232,9 +232,7 @@ impl CommandHandler for LookCommand {
         }
 
         let Some(description) = world.room_description(context.character_id) else {
-            return CommandHandlerResult::Error(String::from(
-                "You are not in a room.",
-            ));
+            return CommandHandlerResult::Error(String::from("You are not in a room."));
         };
 
         let occupants = world.occupants(context.character_id);

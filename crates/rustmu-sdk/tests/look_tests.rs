@@ -83,10 +83,7 @@ fn look_lists_occupants() {
 
     match run_look(&world, vec![]) {
         CommandHandlerResult::Ok(output) => {
-            assert_eq!(
-                output.text,
-                "A busy room.\n\nYou see:\n- Guard\n- Merchant"
-            );
+            assert_eq!(output.text, "A busy room.\n\nYou see:\n- Guard\n- Merchant");
         }
         other => panic!("Expected output, got {other:?}"),
     }
@@ -126,10 +123,7 @@ impl World for UnqueriedWorld {
 fn look_rejects_arguments_before_world_access() {
     match run_look(&UnqueriedWorld, vec![String::from("guard")]) {
         CommandHandlerResult::Error(message) => {
-            assert_eq!(
-                message,
-                "The look command does not accept arguments yet."
-            );
+            assert_eq!(message, "The look command does not accept arguments yet.");
         }
         other => panic!("Expected an error, got {other:?}"),
     }

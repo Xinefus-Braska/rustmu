@@ -19,7 +19,7 @@ pub mod world;
 pub use character::{Character, CharacterId};
 pub use command::{
     Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
-    CommandRegistry, CommandRegistrationResult, LookCommand,
+    CommandRegistrationResult, CommandRegistry, LookCommand,
 };
 pub use session::{ClientToServer, ServerToClient, SessionId};
 pub use world::World;
