@@ -84,3 +84,45 @@ impl CommandContext {
         self.session_id
     }
 }
+
+/// Result returned by a command handler.
+///
+/// The initial result distinguishes successful handling from a handler-level
+/// failure. The server owns how failures are logged, reported to the acting
+/// character, or converted into engine-level effects.
+#[derive(Debug)]
+pub enum CommandHandlerResult {
+    /// The handler completed without a handler-level failure.
+    Ok,
+
+    /// The handler could not complete the command.
+    ///
+    /// The message is intended to describe the failure in game-facing terms.
+    /// It does not replace engine diagnostics or internal error handling.
+    Error(String),
+}
+
+/// Extension point for game-defined command behavior.
+///
+/// Implement this trait to handle a command on behalf of a [`Character`].
+/// The server supplies the parsed [`Command`] and [`CommandContext`]; the
+/// handler expresses the outcome through [`CommandHandlerResult`].
+///
+/// The SDK intentionally does not define how handlers are registered,
+/// scheduled, authorized, or granted access to the world. Those concerns
+/// belong to the server and will be introduced through explicit contracts
+/// as the engine requires them.
+pub trait CommandHandler {
+    /// Handles a command submitted by a character.
+    ///
+    /// # Parameters
+    ///
+    /// - `command`: The parsed command intent.
+    /// - `context`: The acting character and associated session information.
+    ///
+    /// # Returns
+    ///
+    /// A [`CommandHandlerResult`] describing whether the handler completed
+    /// successfully or produced a handler-level error.
+    fn handle(&self, command: &Command, context: &CommandContext) -> CommandHandlerResult;
+}

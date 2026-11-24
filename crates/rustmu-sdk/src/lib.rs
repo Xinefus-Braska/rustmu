@@ -16,5 +16,5 @@ pub mod command;
 pub mod session;
 
 pub use character::{Character, CharacterId};
-pub use command::{Command, CommandContext};
+pub use command::{Command, CommandContext, CommandHandler, CommandHandlerResult};
 pub use session::{ClientToServer, ServerToClient, SessionId};
