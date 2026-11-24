@@ -5,8 +5,8 @@
 //! context required to execute it, while leaving command dispatch, world
 //! mutation, persistence, and transport delivery to the server.
 
-use crate::{Character, CharacterId, SessionId};
 use crate::world::World;
+use crate::{Character, CharacterId, SessionId};
 
 /// A parsed command submitted by a character.
 ///
@@ -37,8 +37,8 @@ pub struct Command {
 /// expose sockets, database connections, Tokio channels, or unrestricted
 /// access to the game world.
 ///
-/// World access and output capabilities will be added incrementally as the
-/// server implements the features that require them.
+/// World access is supplied separately to [`CommandHandler::handle`] so the
+/// context remains focused on actor and session identity.
 #[derive(Debug, Clone)]
 pub struct CommandContext {
     /// Character performing the command.
@@ -86,15 +86,33 @@ impl CommandContext {
     }
 }
 
+/// Output produced by a successfully handled command.
+///
+/// The server owns delivery, formatting adjustments, and persistence. This
+/// initial type carries game-facing text intended for the acting character's
+/// session; broader audience and event semantics can be added later.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CommandOutput {
+    /// Game-facing text intended for delivery to the acting character.
+    pub text: String,
+}
+
+impl CommandOutput {
+    /// Creates output containing the supplied game-facing text.
+    pub fn new(text: impl Into<String>) -> Self {
+        Self { text: text.into() }
+    }
+}
+
 /// Result returned by a command handler.
 ///
-/// The initial result distinguishes successful handling from a handler-level
-/// failure. The server owns how failures are logged, reported to the acting
-/// character, or converted into engine-level effects.
+/// A successful handler returns [`CommandOutput`]. The server owns how that
+/// output is delivered, whether it is persisted, and how failures are logged
+/// or reported.
 #[derive(Debug)]
 pub enum CommandHandlerResult {
-    /// The handler completed without a handler-level failure.
-    Ok,
+    /// The handler completed and produced output for the acting character.
+    Ok(CommandOutput),
 
     /// The handler could not complete the command.
     ///
@@ -106,13 +124,14 @@ pub enum CommandHandlerResult {
 /// Extension point for game-defined command behavior.
 ///
 /// Implement this trait to handle a command on behalf of a [`Character`].
-/// The server supplies the parsed [`Command`] and [`CommandContext`]; the
-/// handler expresses the outcome through [`CommandHandlerResult`].
+/// The server supplies the parsed [`Command`], [`CommandContext`], and a
+/// read-oriented [`World`] implementation; the handler expresses its outcome
+/// through [`CommandHandlerResult`].
 ///
-/// The SDK intentionally does not define how handlers are scheduled,
-/// authorized, or granted access to the world. Those concerns belong to the
-/// server and will be introduced through explicit contracts as the engine
-/// requires them.
+/// The SDK intentionally does not define how handlers are registered,
+/// scheduled, authorized, or granted write access to the world. Those
+/// concerns belong to the server and will be introduced through explicit
+/// contracts as the engine requires them.
 pub trait CommandHandler {
     /// Handles a command submitted by a character.
     ///
@@ -120,12 +139,19 @@ pub trait CommandHandler {
     ///
     /// - `command`: The parsed command intent.
     /// - `context`: The acting character and associated session information.
+    /// - `world`: Read-oriented access to the game state relevant to the
+    ///   command.
     ///
     /// # Returns
     ///
-    /// A [`CommandHandlerResult`] describing whether the handler completed
-    /// successfully or produced a handler-level error.
-    fn handle(&self, command: &Command, context: &CommandContext) -> CommandHandlerResult;
+    /// A [`CommandHandlerResult`] describing either the output produced by
+    /// the command or a handler-level error.
+    fn handle(
+        &self,
+        command: &Command,
+        context: &CommandContext,
+        world: &dyn World,
+    ) -> CommandHandlerResult;
 }
 
 /// Result returned when registering a command handler.
@@ -179,10 +205,6 @@ pub trait CommandRegistry {
 /// lists the other characters present. It does not mutate world state; the
 /// server remains responsible for formatting, delivering, and persisting any
 /// resulting output.
-///
-/// This handler expects the server to provide a [`World`] implementation
-/// through the command dispatch mechanism. The SDK does not define how that
-/// dependency is stored or injected.
 #[derive(Debug, Default)]
 pub struct LookCommand;
 
@@ -194,7 +216,12 @@ impl LookCommand {
 }
 
 impl CommandHandler for LookCommand {
-    fn handle(&self, command: &Command, context: &CommandContext) -> CommandHandlerResult {
+    fn handle(
+        &self,
+        command: &Command,
+        context: &CommandContext,
+        world: &dyn World,
+    ) -> CommandHandlerResult {
         // The initial look implementation accepts no arguments. Additional
         // syntax, such as "look <target>", requires a separate contract and
         // should not be silently ignored.
@@ -204,11 +231,28 @@ impl CommandHandler for LookCommand {
             ));
         }
 
-        // The world dependency is intentionally not part of CommandContext
-        // yet. This placeholder keeps the handler contract compilable while
-        // the server-side dispatch and output contract are designed.
-        let _ = context;
+        let Some(description) = world.room_description(context.character_id) else {
+            return CommandHandlerResult::Error(String::from(
+                "You are not in a room.",
+            ));
+        };
 
-        CommandHandlerResult::Ok
+        let occupants = world.occupants(context.character_id);
+
+        // Build the room view as game-facing text. Keep formatting simple;
+        // richer presentation belongs to a future presentation or output
+        // formatting contract.
+        let mut text = description;
+
+        if !occupants.is_empty() {
+            text.push_str("\n\nYou see:");
+
+            for occupant in occupants {
+                text.push_str("\n- ");
+                text.push_str(&occupant.name);
+            }
+        }
+
+        CommandHandlerResult::Ok(CommandOutput::new(text))
     }
 }
