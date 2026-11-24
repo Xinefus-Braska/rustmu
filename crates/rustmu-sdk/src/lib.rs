@@ -13,13 +13,15 @@
 
 pub mod character;
 pub mod command;
+pub mod movement;
 pub mod session;
 pub mod world;
 
 pub use character::{Character, CharacterId};
 pub use command::{
     Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
-    CommandRegistrationResult, CommandRegistry, LookCommand,
+    CommandRegistry, CommandRegistrationResult, LookCommand,
 };
+pub use movement::{Direction, MovementResult, MoveCommand};
 pub use session::{ClientToServer, ServerToClient, SessionId};
 pub use world::World;

@@ -1,23 +1,25 @@
-//! Read-oriented world contracts for the RustMU engine.
+//! Read- and request-oriented world contracts for the RustMU engine.
 //!
 //! This module defines the smallest world-facing vocabulary needed by
-//! initial command handlers. It intentionally exposes read access rather
-//! than direct mutation: game code describes intent, while the server owns
-//! world state, persistence, concurrency, and side effects.
+//! initial command handlers. It exposes read access and explicit requests
+//! rather than direct mutation: game code describes intent, while the
+//! server owns world state, persistence, concurrency, and side effects.
 
+use crate::movement::{Direction, MovementResult};
 use crate::{Character, CharacterId};
 
-/// Read-oriented view of the world available to a command handler.
+/// Read- and request-oriented view of the world available to a command
+/// handler.
 ///
 /// The server supplies this view when dispatching a command. It should
 /// expose only the information and operations a handler legitimately needs;
 /// it must not expose database connections, server internals, or unrestricted
 /// mutation of game state.
 ///
-/// The initial contract supports describing the character's current room and
-/// listing the other characters present there. Movement, inventory, object
-/// interaction, and write access should be added only when a concrete engine
-/// feature requires them.
+/// The initial contract supports describing the character's current room,
+/// listing the other characters present there, and requesting movement.
+/// Inventory, object interaction, and broader write access should be added
+/// only when a concrete engine feature requires them.
 pub trait World {
     /// Returns a human-readable description of the room occupied by the
     /// character.
@@ -34,4 +36,25 @@ pub trait World {
     /// system may change which characters appear in this result without
     /// changing the method's purpose.
     fn occupants(&self, character_id: CharacterId) -> Vec<Character>;
+
+    /// Requests movement for a character in the supplied direction.
+    ///
+    /// This is a request, not a direct mutation API. The server determines
+    /// whether the destination exists, whether the character may move, how
+    /// state changes, whether events occur, and how the change is persisted.
+    ///
+    /// # Parameters
+    ///
+    /// - `character_id`: The character requesting movement.
+    /// - `direction`: The canonical direction in which to move.
+    ///
+    /// # Returns
+    ///
+    /// A [`MovementResult`] describing either successful movement or a
+    /// game-facing reason the movement was blocked.
+    fn move_character(
+        &self,
+        character_id: CharacterId,
+        direction: Direction,
+    ) -> MovementResult;
 }
