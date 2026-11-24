@@ -20,8 +20,8 @@ pub mod world;
 pub use character::{Character, CharacterId};
 pub use command::{
     Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
-    CommandRegistry, CommandRegistrationResult, LookCommand,
+    CommandRegistrationResult, CommandRegistry, LookCommand,
 };
-pub use movement::{Direction, MovementResult, MoveCommand};
+pub use movement::{Direction, MoveCommand, MovementResult};
 pub use session::{ClientToServer, ServerToClient, SessionId};
 pub use world::World;

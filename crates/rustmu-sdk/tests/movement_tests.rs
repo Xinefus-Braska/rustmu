@@ -23,11 +23,7 @@ impl World for TestWorld {
         panic!("movement must not inspect occupants");
     }
 
-    fn move_character(
-        &self,
-        character_id: CharacterId,
-        direction: Direction,
-    ) -> MovementResult {
+    fn move_character(&self, character_id: CharacterId, direction: Direction) -> MovementResult {
         // Verify that movement is requested for the acting character.
         assert_eq!(character_id, CharacterId(1));
         assert_eq!(direction, Direction::North);
