@@ -1,10 +1,17 @@
 [workspace]
-resolver = "2"
-members = ["crates/rustmu-server", "crates/rustmu-sdk", "crates/rustmu-cli", "crates/rustmu-portal"]
+resolver = "3"
+members = [
+    "crates/rustmu-server",
+    "crates/rustmu-sdk",
+    "crates/rustmu-cli",
+    "crates/rustmu-portal",
+]
 
 [workspace.package]
-edition = "2021"
+edition = "2024"
 license = "MIT OR Apache-2.0"
+repository = "https://github.com/Xinefus-Braska/rustmu"
+rust-version = "1.85"
 
 [workspace.dependencies]
 tokio = { version = "1", features = ["full"] }
