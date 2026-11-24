@@ -120,4 +120,9 @@ cargo clippy --all-targets -- -D warnings
 
 ## License
 
-License selection is pending.
+RustMU* is dual-licensed under either the MIT License or Apache License 2.0.
+
+You may choose either license for your own use.
+
+- [MIT License](LICENSE-MIT)
+- [Apache License 2.0](LICENSE-APACHE)
