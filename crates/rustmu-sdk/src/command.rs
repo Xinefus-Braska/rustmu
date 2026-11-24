@@ -108,10 +108,10 @@ pub enum CommandHandlerResult {
 /// The server supplies the parsed [`Command`] and [`CommandContext`]; the
 /// handler expresses the outcome through [`CommandHandlerResult`].
 ///
-/// The SDK intentionally does not define how handlers are registered,
-/// scheduled, authorized, or granted access to the world. Those concerns
-/// belong to the server and will be introduced through explicit contracts
-/// as the engine requires them.
+/// The SDK intentionally does not define how handlers are scheduled,
+/// authorized, or granted access to the world. Those concerns belong to the
+/// server and will be introduced through explicit contracts as the engine
+/// requires them.
 pub trait CommandHandler {
     /// Handles a command submitted by a character.
     ///
@@ -125,4 +125,49 @@ pub trait CommandHandler {
     /// A [`CommandHandlerResult`] describing whether the handler completed
     /// successfully or produced a handler-level error.
     fn handle(&self, command: &Command, context: &CommandContext) -> CommandHandlerResult;
+}
+
+/// Result returned when registering a command handler.
+///
+/// The server owns conflict detection and error reporting. This initial
+/// result gives game code a simple success/failure boundary without exposing
+/// the server's registry implementation.
+#[derive(Debug)]
+pub enum CommandRegistrationResult {
+    /// The handler was accepted for the supplied command name.
+    Ok,
+
+    /// The server rejected the registration.
+    ///
+    /// Common causes include an invalid command name or a name that is
+    /// already registered. The server determines the precise policy.
+    Error(String),
+}
+
+/// Registration contract for game-defined command handlers.
+///
+/// Implementations associate a command name with a [`CommandHandler`]. The
+/// server supplies the registry during game initialization; game code should
+/// not construct or retain a registry beyond the registration phase.
+///
+/// The SDK does not define registry storage, lookup order, alias handling,
+/// replacement rules, or authorization. Those behaviors belong to the server
+/// and should be introduced only when a concrete feature requires them.
+pub trait CommandRegistry {
+    /// Registers a handler for a command name.
+    ///
+    /// # Parameters
+    ///
+    /// - `name`: The command name that will invoke the handler.
+    /// - `handler`: The handler responsible for processing the command.
+    ///
+    /// # Returns
+    ///
+    /// A [`CommandRegistrationResult`] describing whether the server accepted
+    /// the registration.
+    fn register(
+        &mut self,
+        name: &str,
+        handler: Box<dyn CommandHandler>,
+    ) -> CommandRegistrationResult;
 }
