@@ -2,7 +2,7 @@
 
 use rustmu_sdk::{
     Character, CharacterId, Command, CommandContext, CommandHandler, CommandHandlerResult,
-    Direction, LookCommand, MovementResult, World,
+    Direction, LookCommand, MovementResult, Speech, SpeechResult, World,
 };
 
 /// Supplies deterministic world data without a server or database.
@@ -29,9 +29,18 @@ impl World for TestWorld {
         self.occupants.clone()
     }
 
-    fn move_character(&self, _: CharacterId, _: Direction) -> MovementResult {
+    fn move_character(
+        &self,
+        _: CharacterId,
+        _: Direction,
+    ) -> MovementResult {
         // Look must never request movement.
         panic!("look must not request movement");
+    }
+
+    fn say(&self, _: Speech) -> SpeechResult {
+        // Look must never request speech.
+        panic!("look must not request speech");
     }
 }
 
@@ -88,7 +97,10 @@ fn look_lists_occupants() {
 
     match run_look(&world, vec![]) {
         CommandHandlerResult::Ok(output) => {
-            assert_eq!(output.text, "A busy room.\n\nYou see:\n- Guard\n- Merchant");
+            assert_eq!(
+                output.text,
+                "A busy room.\n\nYou see:\n- Guard\n- Merchant"
+            );
         }
         other => panic!("Expected output, got {other:?}"),
     }
@@ -122,8 +134,16 @@ impl World for UnqueriedWorld {
         panic!("Invalid arguments must be rejected before querying occupants");
     }
 
-    fn move_character(&self, _: CharacterId, _: Direction) -> MovementResult {
+    fn move_character(
+        &self,
+        _: CharacterId,
+        _: Direction,
+    ) -> MovementResult {
         panic!("Invalid arguments must be rejected before requesting movement");
+    }
+
+    fn say(&self, _: Speech) -> SpeechResult {
+        panic!("Invalid arguments must be rejected before requesting speech");
     }
 }
 
@@ -132,7 +152,10 @@ impl World for UnqueriedWorld {
 fn look_rejects_arguments_before_world_access() {
     match run_look(&UnqueriedWorld, vec![String::from("guard")]) {
         CommandHandlerResult::Error(message) => {
-            assert_eq!(message, "The look command does not accept arguments yet.");
+            assert_eq!(
+                message,
+                "The look command does not accept arguments yet."
+            );
         }
         other => panic!("Expected an error, got {other:?}"),
     }

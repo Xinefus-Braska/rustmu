@@ -2,7 +2,7 @@
 
 use rustmu_sdk::{
     Character, CharacterId, Command, CommandContext, CommandHandler, CommandHandlerResult,
-    Direction, MoveCommand, MovementResult, World,
+    Direction, MoveCommand, MovementResult, Speech, SpeechResult, World,
 };
 
 /// Supplies deterministic movement behavior without a server or database.
@@ -23,11 +23,20 @@ impl World for TestWorld {
         panic!("movement must not inspect occupants");
     }
 
-    fn move_character(&self, character_id: CharacterId, direction: Direction) -> MovementResult {
+    fn move_character(
+        &self,
+        character_id: CharacterId,
+        direction: Direction,
+    ) -> MovementResult {
         // Verify that movement is requested for the acting character.
         assert_eq!(character_id, CharacterId(1));
         assert_eq!(direction, Direction::North);
         self.result.clone()
+    }
+
+    fn say(&self, _: Speech) -> SpeechResult {
+        // Movement must never request speech.
+        panic!("movement must not request speech");
     }
 }
 
