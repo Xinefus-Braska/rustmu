@@ -5,6 +5,7 @@
 //! rather than direct mutation: game code describes intent, while the
 //! server owns world state, persistence, concurrency, and side effects.
 
+use crate::communication::{Speech, SpeechResult};
 use crate::movement::{Direction, MovementResult};
 use crate::{Character, CharacterId};
 
@@ -17,9 +18,10 @@ use crate::{Character, CharacterId};
 /// mutation of game state.
 ///
 /// The initial contract supports describing the character's current room,
-/// listing the other characters present there, and requesting movement.
-/// Inventory, object interaction, and broader write access should be added
-/// only when a concrete engine feature requires them.
+/// listing the other characters present there, requesting movement, and
+/// requesting room-scoped speech. Inventory, object interaction, and
+/// broader write access should be added only when a concrete engine feature
+/// requires them.
 pub trait World {
     /// Returns a human-readable description of the room occupied by the
     /// character.
@@ -52,5 +54,25 @@ pub trait World {
     ///
     /// A [`MovementResult`] describing either successful movement or a
     /// game-facing reason the movement was blocked.
-    fn move_character(&self, character_id: CharacterId, direction: Direction) -> MovementResult;
+    fn move_character(
+        &self,
+        character_id: CharacterId,
+        direction: Direction,
+    ) -> MovementResult;
+
+    /// Requests room-scoped speech from a character.
+    ///
+    /// This is a request, not a direct delivery API. The server determines
+    /// which characters can hear the speech, applies game-specific policy,
+    /// emits events, and persists any resulting history.
+    ///
+    /// # Parameters
+    ///
+    /// - `speech`: The speaker and spoken text.
+    ///
+    /// # Returns
+    ///
+    /// A [`SpeechResult`] describing whether the server accepted or rejected
+    /// the request.
+    fn say(&self, speech: Speech) -> SpeechResult;
 }
