@@ -9,6 +9,7 @@ use crate::command::{
     Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
 };
 use crate::world::World;
+use std::str::FromStr;
 
 /// A direction in which a character may request movement.
 ///
@@ -52,20 +53,25 @@ impl Direction {
             Self::Down => "down",
         }
     }
+}
+
+impl FromStr for Direction {
+    /// Direction parsing currently has no structured error information.
+    type Err = ();
 
     /// Parses a canonical direction name.
     ///
-    /// Returns `None` for aliases, abbreviations, mixed case, or unknown
+    /// Returns an error for aliases, abbreviations, mixed case, or unknown
     /// input. Alias handling belongs to the component that parses commands.
-    pub fn from_str(value: &str) -> Option<Self> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
-            "north" => Some(Self::North),
-            "south" => Some(Self::South),
-            "east" => Some(Self::East),
-            "west" => Some(Self::West),
-            "up" => Some(Self::Up),
-            "down" => Some(Self::Down),
-            _ => None,
+            "north" => Ok(Self::North),
+            "south" => Ok(Self::South),
+            "east" => Ok(Self::East),
+            "west" => Ok(Self::West),
+            "up" => Ok(Self::Up),
+            "down" => Ok(Self::Down),
+            _ => Err(()),
         }
     }
 }
@@ -121,7 +127,7 @@ impl CommandHandler for MoveCommand {
             return CommandHandlerResult::Error(String::from("Usage: <direction>"));
         };
 
-        let Some(direction) = Direction::from_str(argument) else {
+        let Ok(direction) = Direction::from_str(argument) else {
             return CommandHandlerResult::Error(String::from("You cannot move in that direction."));
         };
 
