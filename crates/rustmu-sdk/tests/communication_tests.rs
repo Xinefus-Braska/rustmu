@@ -23,11 +23,7 @@ impl World for TestWorld {
         panic!("speech must not inspect occupants");
     }
 
-    fn move_character(
-        &self,
-        _: CharacterId,
-        _: Direction,
-    ) -> MovementResult {
+    fn move_character(&self, _: CharacterId, _: Direction) -> MovementResult {
         // Speech must never request movement.
         panic!("speech must not request movement");
     }

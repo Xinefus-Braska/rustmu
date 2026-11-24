@@ -6,11 +6,11 @@
 //! selection, visibility, policy, event delivery, persistence, and
 //! formatting.
 
+use crate::CharacterId;
 use crate::command::{
     Command, CommandContext, CommandHandler, CommandHandlerResult, CommandOutput,
 };
 use crate::world::World;
-use crate::CharacterId;
 
 /// A message spoken by a character within a room-scoped audience.
 ///
@@ -100,17 +100,13 @@ impl CommandHandler for SayCommand {
         // normalization and profanity, language, or formatting policy
         // belong to the server or game-specific rules.
         if command.arguments.is_empty() {
-            return CommandHandlerResult::Error(String::from(
-                "Usage: say <message>",
-            ));
+            return CommandHandlerResult::Error(String::from("Usage: say <message>"));
         }
 
         let text = command.arguments.join(" ");
 
         match world.say(Speech::new(context.character_id, text)) {
-            SpeechResult::Accepted(text) => {
-                CommandHandlerResult::Ok(CommandOutput::new(text))
-            }
+            SpeechResult::Accepted(text) => CommandHandlerResult::Ok(CommandOutput::new(text)),
             SpeechResult::Rejected(text) => CommandHandlerResult::Error(text),
         }
     }

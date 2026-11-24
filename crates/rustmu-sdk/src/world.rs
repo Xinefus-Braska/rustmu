@@ -54,11 +54,7 @@ pub trait World {
     ///
     /// A [`MovementResult`] describing either successful movement or a
     /// game-facing reason the movement was blocked.
-    fn move_character(
-        &self,
-        character_id: CharacterId,
-        direction: Direction,
-    ) -> MovementResult;
+    fn move_character(&self, character_id: CharacterId, direction: Direction) -> MovementResult;
 
     /// Requests room-scoped speech from a character.
     ///
