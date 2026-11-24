@@ -17,15 +17,4 @@ pub mod session;
 
 pub use character::{Character, CharacterId};
 pub use command::{Command, CommandContext};
-pub use session::{ClientToServer, ServerToClient};
-
-/// Identifies a connected client session.
-///
-/// A session represents an active connection managed by Portal. It is not
-/// necessarily equivalent to a player account or an in-world character;
-/// authentication and character selection remain separate concerns.
-///
-/// The numeric representation is public so Portal and the server can pass
-/// session identifiers without depending on engine internals.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct SessionId(pub u64);
+pub use session::{ClientToServer, ServerToClient, SessionId};
