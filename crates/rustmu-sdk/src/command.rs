@@ -6,6 +6,7 @@
 //! mutation, persistence, and transport delivery to the server.
 
 use crate::{Character, CharacterId, SessionId};
+use crate::world::World;
 
 /// A parsed command submitted by a character.
 ///
@@ -170,4 +171,44 @@ pub trait CommandRegistry {
         name: &str,
         handler: Box<dyn CommandHandler>,
     ) -> CommandRegistrationResult;
+}
+
+/// Handler for the `look` command.
+///
+/// The handler reads the acting character's current room description and
+/// lists the other characters present. It does not mutate world state; the
+/// server remains responsible for formatting, delivering, and persisting any
+/// resulting output.
+///
+/// This handler expects the server to provide a [`World`] implementation
+/// through the command dispatch mechanism. The SDK does not define how that
+/// dependency is stored or injected.
+#[derive(Debug, Default)]
+pub struct LookCommand;
+
+impl LookCommand {
+    /// Creates a `look` command handler.
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl CommandHandler for LookCommand {
+    fn handle(&self, command: &Command, context: &CommandContext) -> CommandHandlerResult {
+        // The initial look implementation accepts no arguments. Additional
+        // syntax, such as "look <target>", requires a separate contract and
+        // should not be silently ignored.
+        if !command.arguments.is_empty() {
+            return CommandHandlerResult::Error(String::from(
+                "The look command does not accept arguments yet.",
+            ));
+        }
+
+        // The world dependency is intentionally not part of CommandContext
+        // yet. This placeholder keeps the handler contract compilable while
+        // the server-side dispatch and output contract are designed.
+        let _ = context;
+
+        CommandHandlerResult::Ok
+    }
 }
