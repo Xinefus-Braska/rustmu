@@ -1,6 +1,7 @@
 use rustmu_sdk::{ClientToServer, ServerToClient};
 use tokio::sync::mpsc;
 
+pub mod command;
 pub mod world;
 
 #[derive(Debug, Clone)]
