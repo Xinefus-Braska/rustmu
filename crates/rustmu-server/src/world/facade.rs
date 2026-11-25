@@ -6,8 +6,6 @@
 //! the boundary between SDK command contracts, server orchestration, and
 //! game-world state.
 
-use rustmu_sdk::communication::{Speech, SpeechResult};
-use rustmu_sdk::movement::{Direction, MovementResult};
 use rustmu_sdk::world::World;
 use rustmu_sdk::{Character, CharacterId};
 
