@@ -125,6 +125,8 @@ mod tests {
     use super::*;
     use rustmu_sdk::{Character, CharacterId, CommandHandlerResult};
 
+    // Brings the `WorldFacade::character` method into scope for test helpers.
+    use crate::world::WorldFacade;
     use crate::world::{InMemoryWorld, RoomId};
 
     /// Creates a dispatcher with the default SDK command handlers.

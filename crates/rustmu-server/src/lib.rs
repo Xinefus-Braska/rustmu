@@ -65,8 +65,15 @@ impl GameServer {
     /// Connected sessions receive the configured welcome message. Input is
     /// parsed into an SDK command, dispatched through the registered handlers,
     /// and its game-facing result is returned to the requesting session.
+    ///
+    /// # Ownership
+    ///
+    /// This method consumes the server. The event loop is the single owner of
+    /// the session registry and mutates it as clients connect and disconnect.
     pub async fn run(
-        &self,
+        // Taking `mut self` lets the loop mutate the session registry without
+        // requiring callers to declare their server binding as mutable.
+        mut self,
         mut client_rx: mpsc::Receiver<ClientToServer>,
         server_tx: mpsc::Sender<ServerToClient>,
     ) -> anyhow::Result<()> {
