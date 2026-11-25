@@ -1,5 +1,13 @@
 # RustMU SDK Plan
 
+## Positioning
+
+This plan implements the SDK portion of the direction defined in [`POSITIONING.md`](POSITIONING.md).
+
+RustMU* is a Rust-native MU* framework for building persistent, customizable multiplayer worlds. Its primary audience is the MU* world builder who is comfortable with Rust or working alongside a Rust developer.
+
+`rustmu-sdk` exists to protect that creator-control promise: it gives game code a stable way to use engine capabilities without requiring game code to depend on engine internals, transport details, persistence details, or a particular genre’s rules.
+
 ## Purpose
 
 `rustmu-sdk` is the stable, game-facing contract between custom game code and the evolving RustMU engine. It defines the vocabulary and extension points that game code may rely on while leaving engine implementation, persistence, scheduling, transport, and delivery mechanics to `rustmu-server` and `rustmu-portal`.
@@ -97,6 +105,10 @@ These limitations are acceptable for the initial look-command loop. They must be
 
    Once an SDK type, trait method, enum variant, or public field becomes part of a released contract, changes require deliberate compatibility planning.
 
+7. **Preserve creator control.**
+
+   The SDK must not make one genre, combat model, economy, progression system, or roleplay policy mandatory for every RustMU* world.
+
 ## Candidate commands
 
 The following commands are **candidates**, not approved SDK APIs or a committed implementation order.
@@ -132,6 +144,7 @@ Before implementing another command, review whether the proposed capability:
 - Requires event delivery beyond `CommandOutput`.
 - Requires authorization or permission semantics.
 - Can remain customizable in `/game`.
+- Preserves RustMU*’s positioning as a creator-controlled MU* framework.
 
 ### Likely first expansion
 
@@ -155,3 +168,4 @@ No movement API should be committed until these questions have documented answer
 - Mark unimplemented ideas clearly as proposals.
 - Use accurate Rust documentation (`///`) and non-documentation comments (`//`) in all SDK source files.
 - Use Rust edition 2024 and prefer minimal, explicit APIs.
+- Treat [`POSITIONING.md`](POSITIONING.md) as the strategic reference when evaluating new SDK capabilities.

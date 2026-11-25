@@ -1,5 +1,13 @@
 # Rust MU* Building Framework — Master Plan
 
+## Positioning
+
+This plan implements the direction defined in [`POSITIONING.md`](POSITIONING.md).
+
+RustMU* is a Rust-native MU* framework for building persistent, customizable multiplayer worlds. It provides a stable game-facing SDK, a modular server core, and a client portal, so creators can define their own worlds, characters, commands, systems, and rules without rebuilding the underlying engine.
+
+The primary audience is the MU* world builder who is comfortable with Rust or working alongside a Rust developer. RustMU* must therefore remain a general framework rather than become a single canonical game, ruleset, or genre.
+
 ## Vision
 
 Build a Rust-based, database-backed MU* framework inspired by Evennia's architecture:
@@ -8,7 +16,7 @@ Build a Rust-based, database-backed MU* framework inspired by Evennia's architec
 - A **Server** layer that owns game state, simulation, commands, and persistence.
 - A separately maintained **game directory/crate** where developers implement their own MU* without modifying the engine.
 
-The intended first use case is a combat-style MUD, but the framework should be general enough for MUD, MUSH, MUX, MUCK, and MOO-style games.
+The framework is general enough for MUD, MUSH, MUX, MUCK, and MOO-style games. A combat-style MUD may be used as an early example or validation scenario, but combat is not a required or universal RustMU* feature.
 
 ## Architectural principles
 
@@ -19,6 +27,7 @@ The intended first use case is a combat-style MUD, but the framework should be g
 5. **Safe Rust by default**: Use `unsafe` only in isolated, reviewed places, if at all.
 6. **Data-driven content**: Rooms, objects, prototypes, help, and areas should be loadable from files or the database.
 7. **Scripting is optional**: Start with a Rust game crate; add Rhai/Lua or WASM only after the core is stable.
+8. **Creator control**: The engine provides reusable capabilities; the game crate defines genre, progression, combat, economy, roleplay norms, narrative, and community policy.
 
 ## Proposed crate layout
 
@@ -289,23 +298,25 @@ CREATE TABLE scripts (
 - A game can react to common events without modifying the engine.
 - Simple builder-authored logic can be added through scripting.
 
-### Phase 7 — Combat-ready simulation
+### Phase 7 — Optional combat simulation
 
-**Goal:** Prepare the engine for a combat MUD.
+**Goal:** Provide reusable simulation infrastructure that a combat-focused game can use.
+
+Combat is an optional game-domain capability, not a universal RustMU* rule. The engine may provide scheduling, events, persistence, and extension points; the game crate owns combat balance, rules, presentation, and policy.
 
 **Deliverables**
 
 - Fixed-step tick scheduler.
 - In-memory active-world cache.
 - Batched or transactional persistence.
-- Turn-based and/or tick-based combat skeleton.
-- Combat events and NPC AI hooks.
+- Combat events and NPC AI hooks, where a concrete game needs them.
 - Performance metrics.
+- A combat example or reference implementation, only if it clarifies the extension model.
 
 **Definition of done**
 
-- Two characters can fight in a simple combat encounter.
-- Important combat state can be recovered after restart.
+- A game crate can implement a simple combat encounter without modifying engine internals.
+- Important game state can be recovered after restart.
 - Tick duration and database load are measurable.
 
 ### Phase 8 — Production hardening
@@ -573,9 +584,9 @@ rather than hardcoding `"0.0.0.0:4000"`. The CLI supplies configuration; the Por
 
 ## rustmu-server
 
-**Purpose:** Own game state, commands, accounts, persistence, and eventually combat.
+**Purpose:** Own game state, commands, accounts, persistence, and reusable simulation infrastructure.
 
-This is the MUD driver. It receives protocol-neutral events from the Portal and decides what happens. It should never know whether a player arrived through Telnet, WebSocket, SSH, or another future protocol.
+This is the MU* engine core. It receives protocol-neutral events from the Portal and decides what happens. It should never know whether a character arrived through Telnet, WebSocket, SSH, or another future protocol.
 
 ### Owns
 
@@ -586,8 +597,8 @@ This is the MUD driver. It receives protocol-neutral events from the Portal and 
 - Permissions and roles
 - Rooms, exits, objects, attributes, tags
 - Persistence and database access
-- Combat, skills, NPCs, and scripts
 - Server-side event handling
+- Reusable simulation infrastructure
 
 ### Does not own
 
@@ -595,6 +606,7 @@ This is the MUD driver. It receives protocol-neutral events from the Portal and 
 - Telnet byte parsing
 - Client protocol negotiation
 - Direct knowledge of whether input came from Telnet or another protocol
+- Genre-specific rules such as combat balance, progression, economy, or roleplay policy
 
 ### Current responsibility
 
@@ -631,7 +643,7 @@ crates/rustmu-server/src/
 │   ├── mod.rs
 │   ├── sqlite.rs
 │   └── postgres.rs
-└── combat/
+└── simulation/
     └── mod.rs
 ```
 
@@ -642,8 +654,8 @@ crates/rustmu-server/src/
 3. Implement `look`, `say`, `pose`, and `help` against an in-memory world.
 4. Add accounts and password authentication.
 5. Add persistence behind a `Storage` trait.
-6. Add a tick scheduler before combat.
-7. Add combat only after rooms, movement, entities, and commands are stable.
+6. Add a tick scheduler before optional combat work.
+7. Add combat only as a game-domain example or extension after rooms, movement, entities, and commands are stable.
 
 ### Important design decision
 
@@ -732,6 +744,7 @@ crates/rustmu-cli/src/
 | No Telnet code in Server | Server can later support WebSocket without changes |
 | Configuration enters through CLI | Components remain testable and configurable |
 | Database access stays behind a trait | SQLite and PostgreSQL can coexist |
+| Combat and genre systems remain in game code | RustMU* remains a general creator-controlled framework |
 
 ## Immediate crate sequence
 
@@ -741,4 +754,4 @@ crates/rustmu-cli/src/
 4. **CLI:** Add `clap`, configuration loading, graceful shutdown, and `rustmu migrate`.
 5. **Persistence:** Add a `Storage` trait in Server, then implement SQLite and PostgreSQL backends.
 
-The first meaningful Server milestone is not combat. It is a command dispatcher that can handle `look`, `say`, and `pose` in an in-memory world. That provides the foundation for accounts, persistence, building, and eventually combat.
+The first meaningful Server milestone is not combat. It is a command dispatcher that can handle `look`, `say`, and `pose` in an in-memory world. That provides the foundation for accounts, persistence, building, and eventually game-specific systems such as combat.
