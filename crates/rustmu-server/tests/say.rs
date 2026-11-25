@@ -6,10 +6,11 @@
 //! duplicating its behavior.
 
 use rustmu_sdk::{
-    Character, CharacterId, Command, CommandContext, CommandHandlerResult, SayCommand,
+    Character, CharacterId, Command, CommandContext, CommandHandler, CommandHandlerResult,
+    SayCommand,
 };
 
-use rustmu_server::world::{InMemoryWorld, RoomId};
+use rustmu_server::world::{InMemoryWorld, RoomId, WorldFacade};
 
 /// Creates a world with one room and two characters.
 fn test_world() -> InMemoryWorld {

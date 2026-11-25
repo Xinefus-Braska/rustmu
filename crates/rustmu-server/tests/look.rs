@@ -6,10 +6,11 @@
 //! contract.
 
 use rustmu_sdk::{
-    Character, CharacterId, Command, CommandContext, CommandHandlerResult, LookCommand,
+    Character, CharacterId, Command, CommandContext, CommandHandler, CommandHandlerResult,
+    LookCommand,
 };
 
-use rustmu_server::world::{InMemoryWorld, RoomId};
+use rustmu_server::world::{InMemoryWorld, RoomId, WorldFacade};
 
 /// Creates a world with two connected rooms and two characters.
 fn test_world() -> InMemoryWorld {
