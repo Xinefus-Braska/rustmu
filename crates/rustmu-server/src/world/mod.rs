@@ -5,5 +5,7 @@
 //! game-world implementation.
 
 pub mod facade;
+pub mod memory;
 
 pub use facade::WorldFacade;
+pub use memory::{InMemoryWorld, RoomId};
