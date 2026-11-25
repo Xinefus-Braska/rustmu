@@ -66,7 +66,11 @@ fn look_returns_room_description_and_other_occupants() {
     };
 
     assert!(output.text.contains("Entry Hall"));
-    assert!(output.text.contains("A small hall with a doorway to the east."));
+    assert!(
+        output
+            .text
+            .contains("A small hall with a doorway to the east.")
+    );
     assert!(output.text.contains("Exits: east"));
     assert!(output.text.contains("You see:"));
     assert!(output.text.contains("Bob"));

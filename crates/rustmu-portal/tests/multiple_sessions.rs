@@ -1,7 +1,7 @@
 use rustmu_portal::Portal;
 use rustmu_sdk::{Character, CharacterId, ClientToServer, ServerToClient};
-use rustmu_server::{GameServer, ServerConfig};
 use rustmu_server::world::{InMemoryWorld, RoomId};
+use rustmu_server::{GameServer, ServerConfig};
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -49,14 +49,8 @@ async fn two_telnet_sessions_receive_only_their_own_output() {
     client_a.write_all(b"say hello from A\n").await.unwrap();
     client_b.write_all(b"say hello from B\n").await.unwrap();
 
-    assert_eq!(
-        read_line(&mut client_a).await,
-        "You say, \"hello from A\""
-    );
-    assert_eq!(
-        read_line(&mut client_b).await,
-        "You say, \"hello from B\""
-    );
+    assert_eq!(read_line(&mut client_a).await, "You say, \"hello from A\"");
+    assert_eq!(read_line(&mut client_b).await, "You say, \"hello from B\"");
 }
 
 /// Creates a world with two characters in the Entry Hall.

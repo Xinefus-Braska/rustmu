@@ -4,13 +4,11 @@
 //! mutation, and output delivery without involving Portal or a real network
 //! transport.
 
-use rustmu_sdk::{
-    Character, CharacterId, ClientToServer, ServerToClient, SessionId,
-};
+use rustmu_sdk::{Character, CharacterId, ClientToServer, ServerToClient, SessionId};
 use tokio::sync::mpsc;
 
-use rustmu_server::{GameServer, ServerConfig};
 use rustmu_server::world::{InMemoryWorld, RoomId};
+use rustmu_server::{GameServer, ServerConfig};
 
 /// Creates a world with two connected rooms and two characters.
 fn test_world() -> InMemoryWorld {
@@ -55,9 +53,7 @@ async fn dispatches_look_move_and_say() {
     let (client_tx, client_rx) = mpsc::channel(16);
     let (server_tx, mut server_rx) = mpsc::channel(16);
 
-    let server_task = tokio::spawn(async move {
-        server.run(client_rx, server_tx).await
-    });
+    let server_task = tokio::spawn(async move { server.run(client_rx, server_tx).await });
 
     let session_id = SessionId(1);
 
@@ -123,9 +119,7 @@ async fn rejects_input_without_an_active_character() {
     let (client_tx, client_rx) = mpsc::channel(4);
     let (server_tx, mut server_rx) = mpsc::channel(4);
 
-    let server_task = tokio::spawn(async move {
-        server.run(client_rx, server_tx).await
-    });
+    let server_task = tokio::spawn(async move { server.run(client_rx, server_tx).await });
 
     let session_id = SessionId(9);
 

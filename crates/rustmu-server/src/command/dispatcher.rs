@@ -71,9 +71,7 @@ impl CommandRegistry for CommandDispatcher {
         let normalized_name = Self::normalize(name);
 
         if normalized_name.is_empty() {
-            return CommandRegistrationResult::Error(String::from(
-                "A command name is required.",
-            ));
+            return CommandRegistrationResult::Error(String::from("A command name is required."));
         }
 
         if self.handlers.contains_key(&normalized_name) {
@@ -110,10 +108,7 @@ impl CommandDispatcher {
         let normalized_name = Self::normalize(&command.name);
 
         let Some(handler) = self.handlers.get(&normalized_name) else {
-            return CommandHandlerResult::Error(format!(
-                "Unknown command: {}",
-                command.name
-            ));
+            return CommandHandlerResult::Error(format!("Unknown command: {}", command.name));
         };
 
         handler.handle(command, context, world)
