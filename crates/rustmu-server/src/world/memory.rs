@@ -68,7 +68,7 @@ impl Room {
 }
 
 /// Mutable state owned by an [`InMemoryWorld`].
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 struct InMemoryWorldState {
     /// Characters known to the world, keyed by character identifier.
     characters: HashMap<CharacterId, Character>,
@@ -234,7 +234,7 @@ impl InMemoryWorld {
     /// Places a character in a room.
     ///
     /// This is a server setup operation, not a player-facing command. The
-    /// character must already be registered with [`InMemoryWorld::insert_character`].
+    /// character must already be registered with [`InMemoryWorld::place_character`].
     pub fn place_character(&mut self, character_id: CharacterId, room_id: RoomId) {
         if let Some(room) = self.state.rooms.get_mut(&room_id) {
             room.add_occupant(character_id);
