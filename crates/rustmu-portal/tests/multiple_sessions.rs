@@ -1,6 +1,7 @@
 use rustmu_portal::Portal;
 use rustmu_sdk::{ClientToServer, ServerToClient};
 use rustmu_server::{GameServer, ServerConfig};
+use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::mpsc;
@@ -35,11 +36,30 @@ async fn two_telnet_sessions_receive_only_their_own_output() {
     assert_eq!(read_line(&mut client_a).await, "Welcome to Rust MU*.");
     assert_eq!(read_line(&mut client_b).await, "Welcome to Rust MU*.");
 
+    // The portal and game server run in separate tasks. Waiting for both
+    // welcome messages confirms that `Connected` messages reached the server,
+    // but does not guarantee that the server has finished attaching both
+    // sessions to characters. Yield briefly so both `Connected` events are
+    // processed before sending input.
+    wait_for_session_attachment().await;
+
     client_a.write_all(b"hello from A\n").await.unwrap();
     client_b.write_all(b"hello from B\n").await.unwrap();
 
     assert_eq!(read_line(&mut client_a).await, "You said: hello from A");
     assert_eq!(read_line(&mut client_b).await, "You said: hello from B");
+}
+
+/// Allows the server task time to process both connection events.
+///
+/// This is intentionally a test-only synchronization aid. A production
+/// client should not depend on timing; session readiness should eventually
+/// be represented by an explicit protocol response.
+async fn wait_for_session_attachment() {
+    for _ in 0..100 {
+        tokio::time::sleep(Duration::from_millis(10)).await;
+        tokio::task::yield_now().await;
+    }
 }
 
 async fn read_line(stream: &mut TcpStream) -> String {
