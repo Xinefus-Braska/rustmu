@@ -128,11 +128,15 @@ pub enum CommandHandlerResult {
 /// read-oriented [`World`] implementation; the handler expresses its outcome
 /// through [`CommandHandlerResult`].
 ///
+/// Handlers must be usable from an asynchronous server task. Requiring
+/// `Send + Sync` allows a `GameServer` to be moved into `tokio::spawn` while
+/// retaining safe concurrent access to registered handlers.
+///
 /// The SDK intentionally does not define how handlers are registered,
 /// scheduled, authorized, or granted write access to the world. Those
 /// concerns belong to the server and will be introduced through explicit
 /// contracts as the engine requires them.
-pub trait CommandHandler {
+pub trait CommandHandler: Send + Sync {
     /// Handles a command submitted by a character.
     ///
     /// # Parameters
