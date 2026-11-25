@@ -6,6 +6,7 @@
 //! storage, distributed state, and advanced simulation are deferred.
 
 use std::collections::HashMap;
+use std::sync::Mutex;
 
 use rustmu_sdk::communication::{Speech, SpeechResult};
 use rustmu_sdk::movement::{Direction, MovementResult};
@@ -68,7 +69,7 @@ impl Room {
 }
 
 /// Mutable state owned by an [`InMemoryWorld`].
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Default)]
 struct InMemoryWorldState {
     /// Characters known to the world, keyed by character identifier.
     characters: HashMap<CharacterId, Character>,
@@ -142,7 +143,9 @@ impl InMemoryWorldState {
             .and_then(|room| room.exits.get(&direction))
             .copied()
         else {
-            return MovementResult::Blocked(String::from("You cannot move in that direction."));
+            return MovementResult::Blocked(String::from(
+                "You cannot move in that direction.",
+            ));
         };
 
         // Remove the character from the source room before inserting it in
@@ -188,14 +191,16 @@ impl InMemoryWorldState {
 /// command contracts.
 #[derive(Debug, Default)]
 pub struct InMemoryWorld {
-    /// Mutable world state, guarded by the caller's synchronization strategy.
-    state: InMemoryWorldState,
+    /// Mutable world state, serialized by a mutex.
+    state: Mutex<InMemoryWorldState>,
 }
 
 impl InMemoryWorld {
     /// Creates an empty in-memory world.
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            state: Mutex::new(InMemoryWorldState::default()),
+        }
     }
 
     /// Inserts or replaces a character record.
@@ -204,7 +209,11 @@ impl InMemoryWorld {
     /// not place the character in a room; use [`InMemoryWorld::place_character`]
     /// for that purpose.
     pub fn insert_character(&mut self, character: Character) {
-        self.state.characters.insert(character.id, character);
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .characters
+            .insert(character.id, character);
     }
 
     /// Inserts or replaces a room record.
@@ -216,7 +225,11 @@ impl InMemoryWorld {
         name: impl Into<String>,
         description: impl Into<String>,
     ) {
-        self.state.rooms.insert(id, Room::new(name, description));
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .rooms
+            .insert(id, Room::new(name, description));
     }
 
     /// Connects two rooms with a one-way exit.
@@ -224,7 +237,13 @@ impl InMemoryWorld {
     /// Call this method twice with opposing directions to create a two-way
     /// connection.
     pub fn connect_rooms(&mut self, source: RoomId, direction: Direction, destination: RoomId) {
-        if let Some(room) = self.state.rooms.get_mut(&source) {
+        if let Some(room) = self
+            .state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .rooms
+            .get_mut(&source)
+        {
             room.connect(direction, destination);
         }
     }
@@ -232,42 +251,59 @@ impl InMemoryWorld {
     /// Places a character in a room.
     ///
     /// This is a server setup operation, not a player-facing command. The
-    /// character must already be registered with [`InMemoryWorld::place_character`].
+    /// character must already be registered with [`InMemoryWorld::insert_character`].
     pub fn place_character(&mut self, character_id: CharacterId, room_id: RoomId) {
-        if let Some(room) = self.state.rooms.get_mut(&room_id) {
+        let mut state = self
+            .state
+            .lock()
+            .expect("in-memory world state must not be poisoned");
+
+        if let Some(room) = state.rooms.get_mut(&room_id) {
             room.add_occupant(character_id);
         }
 
-        self.state.locations.insert(character_id, room_id);
+        state.locations.insert(character_id, room_id);
     }
 }
 
 impl World for InMemoryWorld {
     fn room_description(&self, character_id: CharacterId) -> Option<String> {
-        self.state.room_description(character_id)
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .room_description(character_id)
     }
 
     fn occupants(&self, character_id: CharacterId) -> Vec<Character> {
-        self.state.occupants(character_id)
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .occupants(character_id)
     }
 
     fn move_character(&self, character_id: CharacterId, direction: Direction) -> MovementResult {
-        // The SDK exposes a read-oriented movement request. Interior
-        // mutability is intentionally deferred until the server introduces
-        // its concurrency boundary; this implementation is for the initial
-        // synchronous slice.
-        let mut state = self.state.clone();
-        state.move_character(character_id, direction)
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .move_character(character_id, direction)
     }
 
     fn say(&self, speech: Speech) -> SpeechResult {
-        self.state.say(speech)
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .say(speech)
     }
 }
 
 impl WorldFacade for InMemoryWorld {
     fn character(&self, character_id: CharacterId) -> Option<Character> {
-        self.state.characters.get(&character_id).cloned()
+        self.state
+            .lock()
+            .expect("in-memory world state must not be poisoned")
+            .characters
+            .get(&character_id)
+            .cloned()
     }
 }
 
@@ -336,12 +372,50 @@ mod tests {
     }
 
     #[test]
+    fn movement_updates_the_character_location() {
+        let world = test_world();
+
+        let result = world.move_character(CharacterId(1), Direction::East);
+
+        assert!(matches!(result, MovementResult::Moved(_)));
+
+        let description = world
+            .room_description(CharacterId(1))
+            .expect("moved character should have a room");
+
+        assert!(description.contains("Library"));
+        assert!(description.contains("Exits: west"));
+    }
+
+    #[test]
+    fn movement_updates_room_occupancy() {
+        let world = test_world();
+
+        let result = world.move_character(CharacterId(1), Direction::East);
+
+        assert!(matches!(result, MovementResult::Moved(_)));
+
+        let source_occupants = world.occupants(CharacterId(2));
+        let destination_occupants = world.occupants(CharacterId(1));
+
+        assert!(source_occupants.is_empty());
+        assert_eq!(destination_occupants.len(), 1);
+        assert_eq!(destination_occupants[0].id, CharacterId(2));
+    }
+
+    #[test]
     fn movement_without_an_exit_is_blocked() {
         let world = test_world();
 
         let result = world.move_character(CharacterId(1), Direction::North);
 
         assert!(matches!(result, MovementResult::Blocked(_)));
+
+        let description = world
+            .room_description(CharacterId(1))
+            .expect("blocked character should remain in a room");
+
+        assert!(description.contains("Entry Hall"));
     }
 
     #[test]
