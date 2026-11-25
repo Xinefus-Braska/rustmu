@@ -395,12 +395,15 @@ mod tests {
 
         assert!(matches!(result, MovementResult::Moved(_)));
 
+        // Bob remains in the Entry Hall. From Bob's perspective, Alice is no
+        // longer present.
         let source_occupants = world.occupants(CharacterId(2));
-        let destination_occupants = world.occupants(CharacterId(1));
-
         assert!(source_occupants.is_empty());
-        assert_eq!(destination_occupants.len(), 1);
-        assert_eq!(destination_occupants[0].id, CharacterId(2));
+
+        // Alice is now alone in the Library. From Alice's perspective, no
+        // other character is present.
+        let destination_occupants = world.occupants(CharacterId(1));
+        assert!(destination_occupants.is_empty());
     }
 
     #[test]
