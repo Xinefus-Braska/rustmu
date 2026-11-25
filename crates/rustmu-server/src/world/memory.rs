@@ -142,9 +142,7 @@ impl InMemoryWorldState {
             .and_then(|room| room.exits.get(&direction))
             .copied()
         else {
-            return MovementResult::Blocked(String::from(
-                "You cannot move in that direction.",
-            ));
+            return MovementResult::Blocked(String::from("You cannot move in that direction."));
         };
 
         // Remove the character from the source room before inserting it in
