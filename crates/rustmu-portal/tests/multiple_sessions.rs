@@ -44,11 +44,19 @@ async fn two_telnet_sessions_receive_only_their_own_output() {
     // processed before sending input.
     wait_for_session_attachment().await;
 
-    client_a.write_all(b"hello from A\n").await.unwrap();
-    client_b.write_all(b"hello from B\n").await.unwrap();
+    // `say` is the currently registered speech command. Each session should
+    // receive only the response for the message it submitted.
+    client_a.write_all(b"say hello from A\n").await.unwrap();
+    client_b.write_all(b"say hello from B\n").await.unwrap();
 
-    assert_eq!(read_line(&mut client_a).await, "You said: hello from A");
-    assert_eq!(read_line(&mut client_b).await, "You said: hello from B");
+    assert_eq!(
+        read_line(&mut client_a).await,
+        "You say, \"hello from A\""
+    );
+    assert_eq!(
+        read_line(&mut client_b).await,
+        "You say, \"hello from B\""
+    );
 }
 
 /// Creates a world with two characters in the Entry Hall.
