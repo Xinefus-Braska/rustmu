@@ -1,6 +1,7 @@
 use rustmu_portal::Portal;
-use rustmu_sdk::{ClientToServer, ServerToClient};
+use rustmu_sdk::{Character, CharacterId, ClientToServer, ServerToClient};
 use rustmu_server::{GameServer, ServerConfig};
+use rustmu_server::world::{InMemoryWorld, RoomId};
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -23,7 +24,7 @@ async fn two_telnet_sessions_receive_only_their_own_output() {
         }
     });
 
-    let server = GameServer::new(ServerConfig::default());
+    let server = GameServer::with_world(ServerConfig::default(), test_world());
     tokio::spawn(async move {
         if let Err(error) = server.run(client_rx, server_tx).await {
             panic!("Game server failed: {error}");
@@ -48,6 +49,36 @@ async fn two_telnet_sessions_receive_only_their_own_output() {
 
     assert_eq!(read_line(&mut client_a).await, "You said: hello from A");
     assert_eq!(read_line(&mut client_b).await, "You said: hello from B");
+}
+
+/// Creates a world with two characters in the Entry Hall.
+///
+/// The server's temporary bootstrap behavior attaches `CharacterId(1)` to
+/// every connected session. Seeding Alice and Bob gives the portal test a
+/// valid world in which both sessions have an active character.
+fn test_world() -> InMemoryWorld {
+    let mut world = InMemoryWorld::new();
+
+    world.insert_character(Character {
+        id: CharacterId(1),
+        name: String::from("Alice"),
+    });
+
+    world.insert_character(Character {
+        id: CharacterId(2),
+        name: String::from("Bob"),
+    });
+
+    world.insert_room(
+        RoomId(1),
+        "Entry Hall",
+        "A small hall with a doorway to the east.",
+    );
+
+    world.place_character(CharacterId(1), RoomId(1));
+    world.place_character(CharacterId(2), RoomId(1));
+
+    world
 }
 
 /// Allows the server task time to process both connection events.
