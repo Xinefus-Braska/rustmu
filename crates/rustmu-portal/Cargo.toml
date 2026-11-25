@@ -7,6 +7,5 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 rustmu-sdk = { path = "../rustmu-sdk" }
-rustmu-server = { path = "../rustmu-server" }
 tokio = { workspace = true }
 tracing = { workspace = true }
