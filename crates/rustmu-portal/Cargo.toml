@@ -9,3 +9,6 @@ anyhow.workspace = true
 rustmu-sdk = { path = "../rustmu-sdk" }
 tokio = { workspace = true }
 tracing = { workspace = true }
+
+[dev-dependencies]
+rustmu-server = { path = "../rustmu-server" }
