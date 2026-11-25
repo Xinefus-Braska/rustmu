@@ -1,6 +1,8 @@
 use rustmu_sdk::{ClientToServer, ServerToClient};
 use tokio::sync::mpsc;
 
+pub mod world;
+
 #[derive(Debug, Clone)]
 pub struct ServerConfig {
     pub welcome_message: String,
