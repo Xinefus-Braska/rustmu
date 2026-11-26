@@ -1,8 +1,16 @@
 # Credits and Prior Art
 
-RustMU* is an original project. This document acknowledges the public Rust MU* and multiplayer projects reviewed during early research. Their existence, documentation, and public source code helped inform RustMU*’s understanding of the design space.
+RustMU* is an original project. This document acknowledges the public projects, frameworks, and communities that informed its early research and design direction.
 
 No claim is made that RustMU* copies, derives from, or is affiliated with any project listed below. Where an idea is borrowed, it is credited as prior art or inspiration; RustMU*’s implementation, architecture, content model, rules model, and product direction remain independent.
+
+## Major inspiration: Evennia
+
+[Evennia](https://www.evennia.com/) is one of the main inspirations for RustMU*.
+
+RustMU* draws conceptual inspiration from Evennia’s separation of reusable engine infrastructure from game-specific code. In particular, RustMU* follows a similar high-level idea: a Portal layer handles external connections and protocols, while a Server layer handles game state, commands, simulation, and persistence; game-specific code remains separate from the engine.
+
+RustMU* is not a port, fork, or implementation of Evennia. It is an independent Rust-native framework with its own SDK-first architecture, crate boundaries, persistence model, development roadmap, and product positioning.
 
 ## Researched projects
 
@@ -32,6 +40,8 @@ The research reinforced several planning principles for RustMU*:
 - Scalability, persistence, authoring workflows, and client neutrality should be architectural concerns from the beginning.
 
 ## Thanks
+
+Thank you to the Evennia project and community for demonstrating the value of separating a reusable game engine from game-specific code.
 
 Thank you to every author and contributor whose public work made this research possible. Open-source projects are valuable not only as code to reuse, but as records of design decisions, trade-offs, successes, and limitations.
 

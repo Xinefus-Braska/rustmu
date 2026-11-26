@@ -1,8 +1,22 @@
 # RustMU*
 
-RustMU* is a Rust-based, database-backed framework for building MU* games—MUDs, MUSHes, MUXes, MUCKs, and MOO-style worlds.
+RustMU* is a Rust-native MU* framework for building persistent, customizable multiplayer worlds. It provides a stable game-facing SDK, a modular server core, and a client portal, so creators can define their own worlds, characters, commands, systems, and rules without rebuilding the underlying engine.
 
-It separates the networking layer from game logic so that a game can be implemented in its own crate without modifying the engine.
+It is inspired by [Evennia](https://www.evennia.com/), particularly its separation of reusable engine infrastructure from game-specific code. RustMU* is an independent project with its own architecture, goals, and implementation.
+
+## Positioning
+
+RustMU* is a foundation for building MUDs, MUSHes, MUXes, MUCKs, and other persistent text-based multiplayer worlds. It is not a finished game, a fixed ruleset, or a Diku/Merc port.
+
+The framework separates reusable engine infrastructure from game-specific design:
+
+- `rustmu-sdk` defines the stable game-facing contracts and extension points.
+- `rustmu-server` provides the core engine behavior.
+- `rustmu-portal` handles the network boundary and client sessions.
+- `rustmu-cli` provides a thin launcher and operational entry point.
+- Game-specific code defines the world’s rules, content, systems, and experience.
+
+The SDK describes what game code may do; the server decides how the engine does it.
 
 ## Goals
 
@@ -24,8 +38,8 @@ Client -> Portal -> SDK messages -> Server -> SDK messages -> Portal -> Client
 | Component | Responsibility |
 |---|---|
 | `rustmu-portal` | TCP/Telnet listeners, sessions, protocol parsing, rate limits, and disconnect handling |
-| `rustmu-server` | Accounts, world state, commands, permissions, simulation, persistence, and future combat |
-| `rustmu-sdk` | Protocol-neutral session and message types shared by Portal and Server |
+| `rustmu-server` | Accounts, world state, commands, permissions, simulation, persistence, and reusable simulation infrastructure |
+| `rustmu-sdk` | Protocol-neutral session, command, world, and message contracts shared by Portal and Server |
 | `rustmu-cli` | Configuration, logging, migrations, process lifecycle, and wiring components together |
 | Game crate | Game rules, commands, content, combat, and custom behavior |
 
@@ -44,7 +58,9 @@ rustmu/
 │   └── rustmu-cli/
 ├── docs/
 │   ├── decisions/
-│   └── rust-mu-engine-plan.md
+│   ├── POSITIONING.md
+│   ├── rust-mu-engine-plan.md
+│   └── rustmu-sdk-plan.md
 └── games/
     └── my-combat-mud/
 ```
@@ -59,7 +75,7 @@ Completed groundwork includes:
 - Rust toolchain configuration.
 - An initial architecture and phased implementation plan.
 - A Telnet Portal and GameServer session loop.
-- A documented master plan and architecture decision records.
+- A documented master plan, SDK plan, positioning statement, and architecture decision records.
 
 ## Roadmap
 
@@ -70,7 +86,7 @@ Completed groundwork includes:
 5. **Phase 4 — Commands and permissions:** Command registry, parser, roles, permissions, and help.
 6. **Phase 5 — Builder experience:** Content creation, prototypes, area import/export, and validation.
 7. **Phase 6 — Scripting and extensibility:** Event hooks, Rust game extensions, and optional scripting.
-8. **Phase 7 — Combat-ready simulation:** Tick scheduler, active-world cache, combat skeleton, and performance instrumentation.
+8. **Phase 7 — Optional combat simulation:** Tick scheduler, active-world cache, game-domain combat extension points, and performance instrumentation.
 9. **Phase 8 — Production hardening:** Metrics, backups, deployment, Docker, security review, and load testing.
 
 ## Planned CLI
@@ -111,12 +127,16 @@ cargo clippy --all-targets -- -D warnings
 - **In-memory active world:** Hot game state remains in memory, with deliberate persistence.
 - **Safe Rust by default:** Use `unsafe` only in isolated, reviewed cases, if at all.
 - **Data-driven content:** Rooms, objects, prototypes, help, and areas are loadable from files or the database.
+- **Creator control:** The engine provides reusable capabilities; the game crate defines genre, progression, combat, economy, roleplay norms, narrative, and community policy.
 - **Optional scripting:** Start with Rust game crates; consider Rhai, Lua, or WASM after the core is stable.
 
 ## Documentation
 
+- [Positioning and target audience](docs/POSITIONING.md)
 - [Rust MU* Engine Master Plan](docs/rust-mu-engine-plan.md)
+- [RustMU SDK Plan](docs/rustmu-sdk-plan.md)
 - [Architecture decision records](docs/decisions/)
+- [Credits and prior art](CREDITS.md)
 
 ## License
 
