@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/rustmu%2A.png" alt="RustMU* logo" width="200">
+</p>
+
 # RustMU*
 
 RustMU* is a Rust-native MU* framework for building persistent, customizable multiplayer worlds. It provides a stable game-facing SDK, a modular server core, and a client portal, so creators can define their own worlds, characters, commands, systems, and rules without rebuilding the underlying engine.
@@ -60,7 +64,8 @@ rustmu/
 │   ├── decisions/
 │   ├── POSITIONING.md
 │   ├── rust-mu-engine-plan.md
-│   └── rustmu-sdk-plan.md
+│   ├── rustmu-sdk-plan.md
+│   └── rustmu-server-plan.md
 └── games/
     └── my-combat-mud/
 ```
@@ -135,6 +140,7 @@ cargo clippy --all-targets -- -D warnings
 - [Positioning and target audience](docs/POSITIONING.md)
 - [Rust MU* Engine Master Plan](docs/rust-mu-engine-plan.md)
 - [RustMU SDK Plan](docs/rustmu-sdk-plan.md)
+- [RustMU Server Plan](docs/rustmu-server-plan.md)
 - [Architecture decision records](docs/decisions/)
 - [Credits and prior art](CREDITS.md)
 
